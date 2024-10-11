@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 
-const listScehma = mongoose.Schema({
+const cardSchema = mongoose.Schema({
     name: {
         type: String,
         required: [true, 'Please Enter List Title'],
@@ -10,6 +10,10 @@ const listScehma = mongoose.Schema({
          type: mongoose.Schema.Types.ObjectId, ref: 'Board', 
          required: true 
     },
+    listId : {
+        type: mongoose.Schema.Types.ObjectId, ref: 'List', 
+        required: true 
+   },
         createdAt: {
             type: Date,
             default: Date.now
@@ -17,4 +21,4 @@ const listScehma = mongoose.Schema({
 
 })
 
-module.exports = mongoose.model('List', listScehma)
+module.exports = mongoose.model('Card', cardSchema)
