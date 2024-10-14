@@ -1,12 +1,13 @@
 const express = require('express');
 const { createCard, getAllCards, getCardById, updateCard, deleteCard } = require('../controller/cardController');
+const { isAuthenticated } = require('../middlewares/auth');
 const router = express.Router();
 
-router.route('/card').post(createCard)
-router.route('/cards').get(getAllCards)
-router.route('/card/:id').get(getCardById)
-router.route('/card/:id').put(updateCard)
-router.route('/card/:id').delete(deleteCard)
+router.route('/card').post(isAuthenticated, createCard)
+router.route('/cards').get(isAuthenticated, getAllCards)
+router.route('/card/:id').get(isAuthenticated, getCardById)
+router.route('/card/:id').put(isAuthenticated, updateCard)
+router.route('/card/:id').delete(isAuthenticated, deleteCard)
 
 
 
