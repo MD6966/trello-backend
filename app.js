@@ -22,7 +22,9 @@ app.use('/api/v1', card)
 app.use('/api/v1', email)
 app.use('/api/v1', send_mail)
 app.use('/api/v1', checkList)
-
+app.get("/", (req, res)=>{
+    res.json({message:"Hello From server "})
+  })
 
 
 
