@@ -2,9 +2,10 @@ const express = require('express');
 const app = express();
 const errorMiddleWare = require('./middlewares/errors')
 const cookieParser = require('cookie-parser')
-
+const cors = require('cors');
 app.use(express.json())
 app.use(cookieParser())
+app.use(cors());
 // Import routes here
 const auth = require('./routes/auth');
 const board = require('./routes/board');
