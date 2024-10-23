@@ -9,7 +9,6 @@ exports.createBoard = catchAsyncError(async (req, res, next) => {
         name,
         color_code,
         status,
-        notes,
     });
 
     res.status(201).json({
