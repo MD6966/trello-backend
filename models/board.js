@@ -9,6 +9,9 @@ const boardScehma = mongoose.Schema({
     color_code : {
         type: String,
     },
+    notes : {
+        type: String,
+    },
     status: {
         type:Boolean,
         default:false

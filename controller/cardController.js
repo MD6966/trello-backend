@@ -6,19 +6,29 @@ const list = require('../models/list');
 
 exports.createCard = catchAsyncError(async (req, res, next) => {
     const { name, boardId, listId } = req.body;
+
+    // Check if the board exists
     const Board = await board.findById(boardId);
     if (!Board) {
         return next(new ErrorHandler('Board not found', 404));
     }
+
+    // Check if the list exists and belongs to the board
     const List = await list.findOne({ _id: listId, boardId: boardId });
     if (!List) {
         return next(new ErrorHandler('List not found or does not belong to this board', 404));
     }
+
+    // Create the card
     const card = await Card.create({
         name,
         boardId,
         listId,
     });
+
+    // Add the entire card object to the list's cards array
+    List.cards.push(card);
+    await List.save(); // Save the updated list with the new card
 
     res.status(201).json({
         success: true,

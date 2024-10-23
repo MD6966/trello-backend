@@ -17,7 +17,6 @@ exports.createList = catchAsyncError(async (req, res, next) => {
 });
 
 exports.getAllLists = catchAsyncError(async (req, res, next) => {
-    // Get the boardId from query parameters (or params if preferred)
     const { boardId } = req.query;
 
     const filter = boardId ? { boardId } : {}; 
