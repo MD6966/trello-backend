@@ -1,4 +1,4 @@
-const Board = require('../models/board'); // Ensure you have the correct import for Board
+const Board = require('../models/board');
 const ErrorHandler = require('../utils/errorHandler');
 const catchAsyncError = require('../middlewares/catchAsyncError');
 

@@ -1,6 +1,21 @@
 const mongoose = require('mongoose');
 
-const checkListSchema = mongoose.Schema({
+const taskSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true,
+    },
+    is_completed: {
+        type: Boolean,
+        default: false,
+    },
+    created_at: {
+        type: Date,
+        default: Date.now,
+    },
+});
+
+const checkListSchema = new mongoose.Schema({
     title: {
         type: String,
         required: true,
@@ -10,8 +25,8 @@ const checkListSchema = mongoose.Schema({
         required: false,
     },
     tasks: {
-        type: [String], 
-        default: [], 
+        type: [taskSchema], 
+        default: [],
     },
     card_id: {
         type: mongoose.Schema.Types.ObjectId,
