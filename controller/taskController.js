@@ -10,7 +10,7 @@ exports.addTaskToCheckList = catchAsyncError(async (req, res, next) => {
         return next(new ErrorHandler('Checklist not found', 404));
     }
 
-    const newTask = {
+    const newTask = { 
         name: task_name,
         is_completed: false,
         created_at: Date.now(),
