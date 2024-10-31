@@ -46,3 +46,26 @@ exports.updateTaskCompletion = catchAsyncError(async (req, res, next) => {
         checklist,
     });
 });
+exports.deleteTaskFromCheckList = catchAsyncError(async (req, res, next) => {
+    const { checklist_id, task_id } = req.body;
+
+    const checklist = await CheckList.findById(checklist_id);
+    if (!checklist) {
+        return next(new ErrorHandler('Checklist not found', 404));
+    }
+
+    // Find the task by id and remove it from the array
+    const task = checklist.tasks.id(task_id);
+    if (!task) {
+        return next(new ErrorHandler('Task not found', 404));
+    }
+
+    checklist.tasks.pull(task_id); // Use pull to remove the task from tasks array
+    await checklist.save();
+
+    res.status(200).json({
+        success: true,
+        message: 'Task deleted successfully',
+        checklist,
+    });
+});
