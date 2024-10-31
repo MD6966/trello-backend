@@ -4,7 +4,7 @@ const catchAsyncError = require('../middlewares/catchAsyncError');
 const Card = require('../models/card'); 
 
 exports.createCheckList = catchAsyncError(async (req, res, next) => {
-    const { title, card_id } = req.body;
+    const { title, card_id, board_id } = req.body;
 
     const card = await Card.findById(card_id);
     if (!card) {
@@ -14,6 +14,7 @@ exports.createCheckList = catchAsyncError(async (req, res, next) => {
     const checkList = await CheckList.create({
         title,
         card_id,
+        board_id
     });
 
     res.status(201).json({

@@ -33,6 +33,11 @@ const checkListSchema = new mongoose.Schema({
         ref: 'Card',
         required: true,
     },
+    board_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Board',
+        required: true,
+    },
     createdAt: {
         type: Date,
         default: Date.now,
