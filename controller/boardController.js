@@ -1,7 +1,7 @@
 const Board = require('../models/board');
-const List = require('../models/list'); // Import List model
-const Card = require('../models/card'); // Import Card model
-const CheckList = require('../models/checkList'); // Import CheckList model
+const List = require('../models/list'); 
+const Card = require('../models/card'); 
+const CheckList = require('../models/checkList'); 
 const ErrorHandler = require('../utils/errorHandler');
 const catchAsyncError = require('../middlewares/catchAsyncError');
 
@@ -19,9 +19,45 @@ exports.createBoard = catchAsyncError(async (req, res, next) => {
         board
     });
 });
+exports.addNoteToBoard = catchAsyncError(async (req, res, next) => {
+    const boardId = req.params.id;
+    const { note } = req.body;
+
+    const board = await Board.findById(boardId);
+
+    if (!board) {
+        return next(new ErrorHandler('Board not found', 404));
+    }
+
+    board.notes = note;
+    await board.save();
+
+    res.status(200).json({
+        success: true,
+        note: board.notes
+    });
+});
+exports.updateBoardStatus = catchAsyncError(async (req, res, next) => {
+    const boardId = req.params.id;
+
+    const board = await Board.findById(boardId);
+
+    if (!board) {
+        return next(new ErrorHandler('Board not found', 404));
+    }
+
+    board.status = true;
+    await board.save();
+
+    res.status(200).json({
+        success: true,
+        message: 'Board Completed',
+        board
+    });
+});
 
 exports.getAllBoards = catchAsyncError(async (req, res, next) => {
-    const boards = await Board.find();
+    const boards = await Board.find({ status: false });
 
     const boardsWithTasks = await Promise.all(boards.map(async (board) => {
         const lists = await List.find({ boardId: board._id });
@@ -55,6 +91,15 @@ exports.getAllBoards = catchAsyncError(async (req, res, next) => {
     res.status(200).json({
         success: true,
         boards: boardsWithTasks,
+    });
+});
+
+exports.getCompletedBoards = catchAsyncError(async (req, res, next) => {
+    const activeBoards = await Board.find({ status: true });
+
+    res.status(200).json({
+        success: true,
+        boards: activeBoards
     });
 });
 
