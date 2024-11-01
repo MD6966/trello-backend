@@ -29,14 +29,24 @@ exports.addNoteToBoard = catchAsyncError(async (req, res, next) => {
         return next(new ErrorHandler('Board not found', 404));
     }
 
-    board.notes = note;
+    // Append the new note on a new line if there is an existing note
+    if (board.notes) {
+        board.notes += `<br>${note}`;
+    } else {
+        board.notes = note;
+    }
+    
     await board.save();
 
-    res.status(200).json({
-        success: true,
-        note: board.notes
-    });
+    res.status(200).send(`
+        <html>
+            <body>
+                <p>${board.notes}</p>
+            </body>
+        </html>
+    `);
 });
+
 exports.updateBoardStatus = catchAsyncError(async (req, res, next) => {
     const boardId = req.params.id;
 
