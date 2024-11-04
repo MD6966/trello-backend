@@ -105,11 +105,39 @@ exports.getAllBoards = catchAsyncError(async (req, res, next) => {
 });
 
 exports.getCompletedBoards = catchAsyncError(async (req, res, next) => {
-    const activeBoards = await Board.find({ status: true });
+    const boards = await Board.find({ status: true });
 
+    const boardsWithTasks = await Promise.all(boards.map(async (board) => {
+        const lists = await List.find({ boardId: board._id });
+        
+        let allTasks = [];
+
+        await Promise.all(lists.map(async (list) => {
+            const cards = await Card.find({ listId: list._id });
+
+            await Promise.all(cards.map(async (card) => {
+                const checklists = await CheckList.find({ card_id: card._id });
+
+                checklists.forEach(checklist => {
+                    allTasks = allTasks.concat(checklist.tasks); 
+                });
+            }));
+        }));
+
+        const completedTasks = allTasks.filter(task => task.is_completed);
+        const incompleteTasks = allTasks.filter(task => !task.is_completed);
+
+        return {
+            ...board._doc, 
+            tasks: {
+                completedTasks,
+                incompleteTasks,
+            },
+        };
+    }));
     res.status(200).json({
         success: true,
-        boards: activeBoards
+        boards: boardsWithTasks
     });
 });
 

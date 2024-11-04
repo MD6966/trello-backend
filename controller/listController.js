@@ -1,6 +1,8 @@
 const List = require('../models/list'); 
 const ErrorHandler = require('../utils/errorHandler');
 const catchAsyncError = require('../middlewares/catchAsyncError');
+const Card = require('../models/card');
+const CheckList = require('../models/checkList');
 
 exports.createList = catchAsyncError(async (req, res, next) => {
     const { name, boardId } = req.body;
@@ -23,11 +25,37 @@ exports.getAllLists = catchAsyncError(async (req, res, next) => {
 
     const lists = await List.find(filter);
 
+    const listsWithTasks = await Promise.all(lists.map(async (list) => {
+        const cards = await Card.find({ listId: list._id });
+
+        let allTasks = [];
+
+        await Promise.all(cards.map(async (card) => {
+            const checklists = await CheckList.find({ card_id: card._id });
+
+            checklists.forEach(checklist => {
+                allTasks = allTasks.concat(checklist.tasks);
+            });
+        }));
+
+        const completedTasks = allTasks.filter(task => task.is_completed);
+        const incompleteTasks = allTasks.filter(task => !task.is_completed);
+
+        return {
+            ...list._doc, 
+            tasks: {
+                completedTasks,
+                incompleteTasks,
+            },
+        };
+    }));
+
     res.status(200).json({
         success: true,
-        lists
+        lists: listsWithTasks,
     });
 });
+
 
 exports.getListById = catchAsyncError(async (req, res, next) => {
     const list = await List.findById(req.params.id);

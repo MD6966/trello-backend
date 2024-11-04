@@ -3,6 +3,7 @@ const ErrorHandler = require('../utils/errorHandler');
 const catchAsyncError = require('../middlewares/catchAsyncError');
 const Board = require('../models/board');
 const List = require('../models/list');
+const moment = require('moment');
 
 exports.createCard = catchAsyncError(async (req, res, next) => {
     const { name, boardId, listId } = req.body;
@@ -26,6 +27,43 @@ exports.createCard = catchAsyncError(async (req, res, next) => {
     await list.save();
 
     res.status(201).json({
+        success: true,
+        card
+    });
+});
+
+exports.updateCardDates = catchAsyncError(async (req, res, next) => {
+    const { id: cardId } = req.params;
+    const { startDate, endDate } = req.body;
+
+    if (!startDate || !endDate) {
+        return next(new ErrorHandler('Both startDate and endDate are required', 400));
+    }
+
+    const isValidStartDate = moment(startDate, moment.ISO_8601, true).isValid();
+    const isValidEndDate = moment(endDate, moment.ISO_8601, true).isValid();
+
+    if (!isValidStartDate || !isValidEndDate) {
+        return next(new ErrorHandler('Dates must be in valid ISO 8601 format', 400));
+    }
+
+    if (moment(startDate).isAfter(endDate)) {
+        return next(new ErrorHandler('startDate must be before endDate', 400));
+    }
+
+    const list = await List.findOne({ "cards._id": cardId });
+
+    if (!list) {
+        return next(new ErrorHandler('Card not found', 404));
+    }
+
+    const card = list.cards.id(cardId);
+    card.startDate = startDate;
+    card.endDate = endDate;
+
+    await list.save();
+
+    res.status(200).json({
         success: true,
         card
     });

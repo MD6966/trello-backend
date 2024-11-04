@@ -15,7 +15,7 @@ const email = require('./routes/email')
 const send_mail = require("./routes/sendEmail");
 const checkList = require('./routes/checklist');
 const tasks = require('./routes/tasks')
-
+const user = require('./routes/user')
 
 app.use('/api/v1/', board)
 app.use('/api/v1/auth', auth)
@@ -25,6 +25,7 @@ app.use('/api/v1', email)
 app.use('/api/v1', send_mail)
 app.use('/api/v1', checkList)
 app.use('/api/v1', tasks)
+app.use('/api/v1',user )
 app.get("/", (req, res)=>{
     res.json({message:"Hello From server "})
   })

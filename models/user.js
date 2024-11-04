@@ -26,6 +26,7 @@ const userSchema = new mongoose.Schema({
             type: String,
             default: 'user'
         },
+        assignedBoards: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Board' }],
         createdAt: {
             type: Date,
             default: Date.now

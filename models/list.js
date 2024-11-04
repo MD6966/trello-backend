@@ -22,6 +22,8 @@ const listSchema = mongoose.Schema({
         }],
         default: []
     },
+    startDate: Date,
+    endDate: Date,
     createdAt: {
         type: Date,
         default: Date.now
