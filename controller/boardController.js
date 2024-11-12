@@ -6,7 +6,7 @@ const ErrorHandler = require('../utils/errorHandler');
 const multer = require('multer');
 const catchAsyncError = require('../middlewares/catchAsyncError');
 const cloudinary = require('../config/cloudinaryConfig');
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({ dest: 'tmp/' });
 
 exports.uploadFileToBoard = catchAsyncError(async (req, res, next) => {
     const boardId = req.params.id;
