@@ -6,86 +6,94 @@ const ErrorHandler = require('../utils/errorHandler');
 const multer = require('multer');
 const catchAsyncError = require('../middlewares/catchAsyncError');
 const cloudinary = require('../config/cloudinaryConfig');
-const upload = multer({ storage: multer.memoryStorage() }); // Store files in memory
+// const storage = multer.memoryStorage();
+// const { PassThrough } = require('stream');
+// const upload = multer({ storage });
 
-exports.uploadFileToBoard = catchAsyncError(async (req, res, next) => {
-    const boardId = req.params.id;
-    const board = await Board.findById(boardId);
+// exports.uploadFileToBoard = catchAsyncError(async (req, res, next) => {
+//     const boardId = req.params.id;
+//     const board = await Board.findById(boardId); // Make sure Board.findById() is awaited
 
-    if (!board) {
-        return next(new ErrorHandler('Board not found', 404));
-    }
+//     if (!board) {
+//         return next(new ErrorHandler('Board not found', 404));
+//     }
 
-    if (!req.file) {
-        return next(new ErrorHandler('No file provided', 400));
-    }
+//     if (!req.file) {
+//         return next(new ErrorHandler('No file provided', 400));
+//     }
 
-    try {
-        // Directly upload the file buffer to Cloudinary
-        const result = await cloudinary.uploader.upload_stream({
-            folder: 'board_files',
-            resource_type: 'auto',
-        }, (error, result) => {
-            if (error) {
-                console.error('Cloudinary upload error:', error);
-                return next(new ErrorHandler('Cloudinary upload failed', 500));
-            }
-            return result;
-        });
+//     try {
+//         // Create a stream from the file buffer
+//         const fileBuffer = req.file.buffer;
+//         const fileStream = new PassThrough();
+//         fileStream.end(fileBuffer);
 
-        // Push file details to board if upload is successful
-        board.files.push({ url: result.secure_url, name: req.body.fileName });
-        await board.save();
+//         // Upload to Cloudinary using the stream
+//         cloudinary.uploader.upload_stream(
+//             { folder: 'board_files', resource_type: 'auto' },
+//             async (error, result) => {  // Make this callback async
+//                 if (error) {
+//                     console.error('Cloudinary upload error:', error);
+//                     return next(new ErrorHandler('Cloudinary upload failed', 500));
+//                 }
 
-        res.status(200).json({
-            success: true,
-            message: 'File uploaded successfully',
-            file: { url: result.secure_url, name: req.body.fileName },
-            board,
-        });
-    } catch (error) {
-        console.error('File upload error:', error);
-        return next(new ErrorHandler('File upload failed', 500));
-    }
-});
-exports.deleteFileFromBoard = catchAsyncError(async (req, res, next) => {
-    const boardId = req.params.id;
-    const fileId = req.params.fileId;  // Get the file ID from the request parameters
+//                 console.log('Cloudinary upload result:', result);
 
-    // Find the board by ID
-    const board = await Board.findById(boardId);
-    if (!board) {
-        return next(new ErrorHandler('Board not found', 404));
-    }
+//                 // Save the file info to the board (board.save() requires async)
+//                 board.files.push({ url: result.secure_url, name: req.body.fileName });
+//                 await board.save();  // Ensure you are inside an async function
 
-    // Find the file to be deleted by its _id from the board's files array
-    const fileIndex = board.files.findIndex(file => file._id.toString() === fileId);
-    if (fileIndex === -1) {
-        return next(new ErrorHandler('File not found', 404));
-    }
+//                 res.status(200).json({
+//                     success: true,
+//                     message: 'File uploaded successfully',
+//                     file: { url: result.secure_url, name: req.body.fileName },
+//                     board,
+//                 });
+//             }
+//         ).end(fileStream);
+//     } catch (error) {
+//         console.error('Unexpected error:', error);
+//         return next(new ErrorHandler('Cloudinary upload failed', 500));
+//     }
+// });
+// exports.deleteFileFromBoard = catchAsyncError(async (req, res, next) => {
+//     const boardId = req.params.id;
+//     const fileId = req.params.fileId;  // Get the file ID from the request parameters
 
-    // Get the file's Cloudinary public_id for deletion
-    const file = board.files[fileIndex];
-    const publicId = file.url.split('/').pop().split('.')[0]; // Assuming the file URL format is consistent
+//     // Find the board by ID
+//     const board = await Board.findById(boardId);
+//     if (!board) {
+//         return next(new ErrorHandler('Board not found', 404));
+//     }
 
-    // Set resource type based on file extension
-    const resourceType = file.url.includes('image') ? 'image' : 'raw'; // Adjust this condition as needed
+//     // Find the file to be deleted by its _id from the board's files array
+//     const fileIndex = board.files.findIndex(file => file._id.toString() === fileId);
+//     if (fileIndex === -1) {
+//         return next(new ErrorHandler('File not found', 404));
+//     }
 
-    // Delete the file from Cloudinary
-    await cloudinary.uploader.destroy(publicId, {
-        resource_type: resourceType, // Set resource type (image, raw, etc.)
-    });
+//     // Get the file's Cloudinary public_id for deletion
+//     const file = board.files[fileIndex];
+//     const publicId = file.url.split('/').pop().split('.')[0]; // Assuming the file URL format is consistent
 
-    // Remove the file from the board's files array
-    board.files.splice(fileIndex, 1);
-    await board.save();
+//     // Set resource type based on file extension
+//     const resourceType = file.url.includes('image') ? 'image' : 'raw'; // Adjust this condition as needed
 
-    res.status(200).json({
-        success: true,
-        message: 'File deleted successfully',
-        board,
-    });
-});
+//     // Delete the file from Cloudinary
+//     await cloudinary.uploader.destroy(publicId, {
+//         resource_type: resourceType, // Set resource type (image, raw, etc.)
+//     });
+
+//     // Remove the file from the board's files array
+//     board.files.splice(fileIndex, 1);
+//     await board.save();
+
+//     res.status(200).json({
+//         success: true,
+//         message: 'File deleted successfully',
+//         board,
+//     });
+// });
 
 
 exports.createBoard = catchAsyncError(async (req, res, next) => {
