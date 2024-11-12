@@ -24,8 +24,8 @@ router.route('/boards').get(isAuthenticated, getAllBoards);
 router.route('/board/:id').get(isAuthenticated, getBoardById);
 router.route('/board/:id').put(isAuthenticated, updateBoard);
 router.route('/board/:id').delete(isAuthenticated, deleteBoard);
-// router.route('/boards/:id/files/:fileId').delete(isAuthenticated, deleteFileFromBoard);
-// router.route('/board/:id/upload').post(isAuthenticated, upload.single('file'), uploadFileToBoard);
+router.route('/boards/:id/files/:fileId').delete(isAuthenticated, deleteFileFromBoard);
+router.route('/board/:id/upload').post(isAuthenticated, upload.single('file'), uploadFileToBoard);
 
 
 module.exports = router;
