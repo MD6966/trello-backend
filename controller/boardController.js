@@ -3,79 +3,7 @@ const List = require('../models/list');
 const Card = require('../models/card'); 
 const CheckList = require('../models/checkList'); 
 const ErrorHandler = require('../utils/errorHandler');
-const multer = require('multer');
 const catchAsyncError = require('../middlewares/catchAsyncError');
-const cloudinary = require('../config/cloudinaryConfig');
-const upload = multer({ dest: 'uploads/' });
-
-exports.uploadFileToBoard = catchAsyncError(async (req, res, next) => {
-    const boardId = req.params.id;
-    const board = await Board.findById(boardId);
-
-    if (!board) {
-        return next(new ErrorHandler('Board not found', 404));
-    }
-
-    if (!req.file) {
-        return next(new ErrorHandler('No file provided', 400));
-    }
-
-    // Upload file to Cloudinary
-    const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: 'board_files', // Optional folder in Cloudinary
-        resource_type: 'auto', // Auto-detects file type (e.g., image, pdf)
-    });
-
-    // Save file URL and name to the board
-    board.files.push({ url: result.secure_url, name: req.body.fileName });
-    await board.save();
-
-    res.status(200).json({
-        success: true,
-        message: 'File uploaded successfully',
-        file: { url: result.secure_url, name: req.body.fileName },
-        board,
-    });
-});
-exports.deleteFileFromBoard = catchAsyncError(async (req, res, next) => {
-    const boardId = req.params.id;
-    const fileId = req.params.fileId;  // Get the file ID from the request parameters
-
-    // Find the board by ID
-    const board = await Board.findById(boardId);
-    if (!board) {
-        return next(new ErrorHandler('Board not found', 404));
-    }
-
-    // Find the file to be deleted by its _id from the board's files array
-    const fileIndex = board.files.findIndex(file => file._id.toString() === fileId);
-    if (fileIndex === -1) {
-        return next(new ErrorHandler('File not found', 404));
-    }
-
-    // Get the file's Cloudinary public_id for deletion
-    const file = board.files[fileIndex];
-    const publicId = file.url.split('/').pop().split('.')[0]; // Assuming the file URL format is consistent
-
-    // Set resource type based on file extension
-    const resourceType = file.url.includes('image') ? 'image' : 'raw'; // Adjust this condition as needed
-
-    // Delete the file from Cloudinary
-    await cloudinary.uploader.destroy(publicId, {
-        resource_type: resourceType, // Set resource type (image, raw, etc.)
-    });
-
-    // Remove the file from the board's files array
-    board.files.splice(fileIndex, 1);
-    await board.save();
-
-    res.status(200).json({
-        success: true,
-        message: 'File deleted successfully',
-        board,
-    });
-});
-
 
 exports.createBoard = catchAsyncError(async (req, res, next) => {
     const { name, color_code, status } = req.body;
