@@ -6,7 +6,7 @@ const ErrorHandler = require('../utils/errorHandler');
 const multer = require('multer');
 const catchAsyncError = require('../middlewares/catchAsyncError');
 const cloudinary = require('../config/cloudinaryConfig');
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({ storage: multer.memoryStorage() }); // Store files in memory
 
 exports.uploadFileToBoard = catchAsyncError(async (req, res, next) => {
     const boardId = req.params.id;
@@ -20,22 +20,33 @@ exports.uploadFileToBoard = catchAsyncError(async (req, res, next) => {
         return next(new ErrorHandler('No file provided', 400));
     }
 
-    // Upload file to Cloudinary
-    const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: 'board_files', // Optional folder in Cloudinary
-        resource_type: 'auto', // Auto-detects file type (e.g., image, pdf)
-    });
+    try {
+        // Directly upload the file buffer to Cloudinary
+        const result = await cloudinary.uploader.upload_stream({
+            folder: 'board_files',
+            resource_type: 'auto',
+        }, (error, result) => {
+            if (error) {
+                console.error('Cloudinary upload error:', error);
+                return next(new ErrorHandler('Cloudinary upload failed', 500));
+            }
+            return result;
+        });
 
-    // Save file URL and name to the board
-    board.files.push({ url: result.secure_url, name: req.body.fileName });
-    await board.save();
+        // Push file details to board if upload is successful
+        board.files.push({ url: result.secure_url, name: req.body.fileName });
+        await board.save();
 
-    res.status(200).json({
-        success: true,
-        message: 'File uploaded successfully',
-        file: { url: result.secure_url, name: req.body.fileName },
-        board,
-    });
+        res.status(200).json({
+            success: true,
+            message: 'File uploaded successfully',
+            file: { url: result.secure_url, name: req.body.fileName },
+            board,
+        });
+    } catch (error) {
+        console.error('File upload error:', error);
+        return next(new ErrorHandler('File upload failed', 500));
+    }
 });
 exports.deleteFileFromBoard = catchAsyncError(async (req, res, next) => {
     const boardId = req.params.id;
